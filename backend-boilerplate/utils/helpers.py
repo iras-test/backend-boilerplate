@@ -1,4 +1,6 @@
 import datetime
+import secrets
+import string
 
 def generate_unique_number(instance, custom=None):
     """
@@ -25,3 +27,37 @@ def generate_unique_number(instance, custom=None):
     month = now.month
 
     return f"{initials}/{counter}/{year}/{month}"
+
+
+def generate_random_password(length: int = 12) -> str:
+    """
+    Generate a strong, cryptographically secure random password.
+
+    Args:
+        length: Password length (recommended: 12–20)
+
+    Returns:
+        Random password string containing letters, digits, and symbols
+    """
+    if length < 8:
+        raise ValueError("Password length must be at least 8 characters")
+
+    chars = (
+            string.ascii_uppercase
+            + string.ascii_lowercase
+            + string.digits
+            + "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    )
+
+    password = [
+        secrets.choice(string.ascii_uppercase),
+        secrets.choice(string.ascii_lowercase),
+        secrets.choice(string.digits),
+        secrets.choice("!@#$%^&*()_+-=[]{}|;:,.<>?"),
+    ]
+
+    password += [secrets.choice(chars) for _ in range(length - 4)]
+
+    secrets.SystemRandom().shuffle(password)
+
+    return ''.join(password)
