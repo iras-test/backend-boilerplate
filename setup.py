@@ -21,6 +21,6 @@ setup(
         'djangorestframework',
         'urllib3',
         'django-activity-stream',
-
+        'django-filter'
     ],
 )

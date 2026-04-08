@@ -7,6 +7,8 @@ from django.dispatch.dispatcher import Signal
 
 post_nested_save = Signal()
 
+import secrets
+import string
 
 def generate_unique_number(instance, custom=None):
     """
