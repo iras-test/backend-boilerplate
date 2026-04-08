@@ -19,7 +19,8 @@ setup(
     install_requires=[
         'Django',
         'djangorestframework',
-        'urllib3'
+        'urllib3',
+        'django-activity-stream',
 
     ],
 )
