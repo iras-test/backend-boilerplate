@@ -1,6 +1,3 @@
-"""Abstract base models for user management."""
-
-import uuid
 from django.db import models
 from backend_boilerplate.utils.models import BaseModel
 
