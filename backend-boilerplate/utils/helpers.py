@@ -1,6 +1,12 @@
 import datetime
 import secrets
 import string
+from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.dispatch.dispatcher import Signal
+
+post_nested_save = Signal()
+
 
 def generate_unique_number(instance, custom=None):
     """
@@ -61,3 +67,14 @@ def generate_random_password(length: int = 12) -> str:
     secrets.SystemRandom().shuffle(password)
 
     return ''.join(password)
+def get_external_user():
+    user, _ = get_user_model().objects.get_or_create(
+        email=settings.EXTERNAL_USER_EMAIL,
+        defaults={
+            "phone_number": getattr(settings, 'EXTERNAL_USER_PHONE', '0000000000'),
+            "first_name": settings.EXTERNAL_USER_FIRST_NAME,
+            "last_name": settings.EXTERNAL_USER_LAST_NAME,
+            "is_active": True,
+        },
+    )
+    return user
