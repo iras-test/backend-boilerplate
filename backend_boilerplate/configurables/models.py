@@ -27,61 +27,61 @@ class AbstractConfigurableModel(BaseModel):
     def __str__(self):
         return self.name
     
-class Region(AbstractConfigurableModel):
+class RegionModel(AbstractConfigurableModel):
     name = models.CharField(max_length=100, unique=True)
 
     class Meta:
         abstract = True
 
-class District(AbstractConfigurableModel):
+class DistrictModel(AbstractConfigurableModel):
     name = models.CharField(max_length=100, unique=True)
     parent = models.ForeignKey(
-        Region, on_delete=models.CASCADE, related_name="districts"
+        RegionModel, on_delete=models.CASCADE, related_name="districts"
     )
 
     class Meta:
         abstract = True
 
 
-class County(AbstractConfigurableModel):
+class CountyModel(AbstractConfigurableModel):
     parent = models.ForeignKey(
-        District, on_delete=models.CASCADE, related_name="counties"
+        DistrictModel, on_delete=models.CASCADE, related_name="counties"
     )
 
     class Meta:
         abstract = True
 
 
-class SubCounty(AbstractConfigurableModel):
+class SubCountyModel(AbstractConfigurableModel):
     parent = models.ForeignKey(
-        County, on_delete=models.CASCADE, related_name="subcounties"
+        CountyModel, on_delete=models.CASCADE, related_name="subcounties"
     )
 
     class Meta:
         abstract = True
 
 
-class Parish(AbstractConfigurableModel):
+class ParishModel(AbstractConfigurableModel):
     parent = models.ForeignKey(
-        SubCounty, on_delete=models.CASCADE, related_name="parishes"
+        SubCountyModel, on_delete=models.CASCADE, related_name="parishes"
     )
 
     class Meta:
         abstract = True
 
 
-class Village(AbstractConfigurableModel):
+class VillageModel(AbstractConfigurableModel):
     parent = models.ForeignKey(
-        Parish, on_delete=models.CASCADE, related_name="villages"
+        ParishModel, on_delete=models.CASCADE, related_name="villages"
     )
 
     class Meta:
         abstract = True
 
 
-class Street(AbstractConfigurableModel):
+class StreetModel(AbstractConfigurableModel):
     parent = models.ForeignKey(
-        Village, on_delete=models.CASCADE, related_name="streets"
+        VillageModel, on_delete=models.CASCADE, related_name="streets"
     )
 
     class Meta:
@@ -96,43 +96,43 @@ class BaseLocationModel(BaseModel):
     unused hierarchy fields can be left null.
     """
     region = models.ForeignKey(
-        Region,
+        RegionModel,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     district = models.ForeignKey(
-        District,
+        DistrictModel,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     county = models.ForeignKey(
-        County,
+        CountyModel,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     sub_county = models.ForeignKey(
-        SubCounty,
+        SubCountyModel,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     parish = models.ForeignKey(
-        Parish,
+        ParishModel,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     village = models.ForeignKey(
-        Village,
+        VillageModel,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     street = models.ForeignKey(
-        Street,
+        StreetModel,
         models.DO_NOTHING,
         null=True,
         blank=True,
