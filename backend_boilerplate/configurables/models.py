@@ -1,5 +1,8 @@
+from backend_boilerplate.utils.constants import NOTIFICATION_CHANNEL_CHOICES
 from backend_boilerplate.utils.models import BaseModel
 from django.db import models
+from django.conf import settings
+
 
 ACTIVE_LOCATION = "active"
 INACTIVE_LOCATION = "inactive"
@@ -151,3 +154,38 @@ class Configuration(AbstractConfigurableModel):
     class Meta:
         abstract = True
         unique_together = ("key", "name")
+
+
+class NotificationRecipientGroups(BaseModel):
+    name = models.CharField(max_length=50, unique=True)
+    recipients = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="recipients_groups"
+    )
+
+    class Meta:
+        abstract = True
+
+
+class NotificationSettings(BaseModel):
+    notification_name = models.CharField(
+        max_length=200, unique=True, null=False, blank=False
+    )
+    subject = models.CharField(max_length=200, null=True, blank=True)
+    body = models.JSONField()
+    notification_type = models.CharField(
+        max_length=50, choices=NOTIFICATION_CHANNEL_CHOICES
+    )
+    trigger_event = models.CharField(max_length=100, null=True, blank=True)
+    recipients = models.ForeignKey(
+        NotificationRecipientGroups,
+        related_name="recipients_groups",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    enabled = models.BooleanField(default=True)
+    effective_start_date = models.DateField(null=True, blank=True)
+    effective_end_date = models.DateField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
