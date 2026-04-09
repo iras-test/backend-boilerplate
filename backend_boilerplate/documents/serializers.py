@@ -6,7 +6,7 @@ from utils.serializers import (
     CreateOnlyCurrentUserDefault,
 )
 
-class DocumentSerializer(serializers.ModelSerializer):
+class AbstractDocumentSerializer(serializers.ModelSerializer):
     created_by = SimplestUserSerializer(
         required=False, default=CreateOnlyCurrentUserDefault()
     )
@@ -20,7 +20,7 @@ class DocumentSerializer(serializers.ModelSerializer):
     #     return url.replace(url[:media_index], "") if url.find("/media") != -1 else url
 
 
-class SimplestDocumentSerializer(serializers.ModelSerializer):
+class AbstractSimplestDocumentSerializer(serializers.ModelSerializer):
     created_by = SimplestUserSerializer(
         required=False, default=CreateOnlyCurrentUserDefault()
     )
@@ -38,7 +38,7 @@ class SimplestDocumentSerializer(serializers.ModelSerializer):
         extra_kwargs = {"reference_number": {"read_only": True}}
 
 
-class SimpleDocumentSerializer(ActivityModelSerializer):
+class AbstractSimpleDocumentSerializer(ActivityModelSerializer):
     created_by = SimplestUserSerializer(
         required=False, default=CreateOnlyCurrentUserDefault()
     )
@@ -55,7 +55,7 @@ class SimpleDocumentSerializer(ActivityModelSerializer):
         exclude = ("object_id", "content_type")
         # fields = "__all__"
 
-class SimplerDocumentSerializer(ActivityModelSerializer):
+class AbstractSimplerDocumentSerializer(ActivityModelSerializer):
     created_by = SimplestUserSerializer(
         required=False, default=CreateOnlyCurrentUserDefault()
     )
@@ -64,7 +64,7 @@ class SimplerDocumentSerializer(ActivityModelSerializer):
         fields = "__all__"
 
 
-class AttachmentDetailSerializer(serializers.Serializer):
+class AbstractAttachmentDetailSerializer(serializers.Serializer):
     serializer_class = None
     allow_many = True
 
@@ -80,5 +80,5 @@ class AttachmentDetailSerializer(serializers.Serializer):
             )
         return json
 
-class DocumentDetailSerializer(AttachmentDetailSerializer):
+class AbstractDocumentDetailSerializer(AttachmentDetailSerializer):
     serializer_class = SimpleDocumentSerializer

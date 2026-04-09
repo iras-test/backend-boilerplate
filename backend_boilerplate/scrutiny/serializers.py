@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from backend_boilerplate.scrutiny.models import LevelActionNotificationTemplate, ScrutinyWorkflowConfigurable, WorkFlow, WorkflowAction
+from backend_boilerplate.scrutiny.models import AbstractLevelActionNotificationTemplate, AbstractScrutinyWorkflowConfigurable, AbstractWorkFlow, AbstractWorkflowAction
 from backend_boilerplate.user_mgmt.serializers import SimplestUserSerializer
 from backend_boilerplate.utils.serializers import ActivityModelSerializer, CreateOnlyCurrentUserDefault, NestedModelSerializer
 
@@ -14,7 +14,6 @@ class WorkFlowSerializer(ActivityModelSerializer):
     number_of_levels = serializers.IntegerField(read_only=True)
 
     class Meta:
-        model = WorkFlow
         fields = [
             "id",
             "name",
@@ -27,7 +26,6 @@ class WorkFlowSerializer(ActivityModelSerializer):
 class WorkflowListSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = WorkFlow
         fields = ["id", "name", "is_active", "description", "number_of_levels"]
 
 class WorkflowActionSerializer(ActivityModelSerializer):
@@ -37,7 +35,6 @@ class WorkflowActionSerializer(ActivityModelSerializer):
     )
 
     class Meta:
-        model = WorkflowAction
         fields = [
             "id",
             "name",
@@ -51,14 +48,12 @@ class WorkflowActionSerializer(ActivityModelSerializer):
 
 class SimplifiedWorkflowActionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = WorkflowAction
         fields = ["id", "name", "action_type", "label"]
 
 
 class WorkflowActionListSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = WorkflowAction
         fields = [
             "id",
             "name",
@@ -72,7 +67,6 @@ class WorkflowActionListSerializer(serializers.ModelSerializer):
 
 class LevelActionNotificationTemplateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LevelActionNotificationTemplate
         exclude = ["level_config"]
 
 
@@ -92,7 +86,6 @@ class ScrutinyWorkflowConfigurableSerializer(ActivityModelSerializer, NestedMode
     )
 
     class Meta:
-        model = ScrutinyWorkflowConfigurable
         fields = [
             "id",
             "workflow_name",
@@ -123,7 +116,7 @@ class ScrutinyWorkflowConfigurableSerializer(ActivityModelSerializer, NestedMode
         for template in data:
             template = dict(template)
             recipients = template.pop("notification_recipients", [])
-            obj, _ = LevelActionNotificationTemplate.objects.update_or_create(
+            obj, _ = AbstractLevelActionNotificationTemplate.objects.update_or_create(
                 level_config=instance,
                 action=template["action"],
                 defaults=template,
@@ -140,7 +133,6 @@ class ScrutinyWorkflowConfigurableListSerializer(serializers.ModelSerializer):
     actor_details = SimplestUserSerializer(source="actors", many=True, read_only=True)
 
     class Meta:
-        model = ScrutinyWorkflowConfigurable
         fields = [
             "id",
             "workflow_name",
@@ -162,7 +154,6 @@ class ConfigsByRoleSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = ScrutinyWorkflowConfigurable
         fields = [
             "id",
             "workflow_name",

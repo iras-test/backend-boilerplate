@@ -7,7 +7,7 @@ from utils.models import BaseModel
 from .helpers import get_file_path
 from utils.constants import DOCUMENT_TYPES, ALLOWED_FILE_EXTENSIONS
 
-class Document(BaseModel):
+class AbstractDocument(BaseModel):
     reference_number = models.CharField(max_length=50, null=True, blank=True)
     author_first_name = models.CharField(max_length=50, null=True, blank=True)
     author_last_name = models.CharField(max_length=50, null=True, blank=True)

@@ -1,7 +1,7 @@
 import uuid
 
 from django.db import models
-from backend_boilerplate.configurables.models import NotificationSettings
+from backend_boilerplate.configurables.models import AbstractNotificationSettings
 from backend_boilerplate.utils.constants import WORKFLOW_ACTION_TYPE_BACKWARD, WORKFLOW_ACTION_TYPE_CHOICES, WORKFLOW_ACTION_TYPE_FORWARD
 from backend_boilerplate.utils.managers import ActiveManager
 from backend_boilerplate.utils.models import BaseModel
@@ -16,7 +16,7 @@ class WorkflowAbstractModel(BaseModel):
         abstract = True
 
 
-class WorkFlow(WorkflowAbstractModel):
+class AbstractWorkFlow(WorkflowAbstractModel):
     name = models.CharField(max_length=50, unique=True)
     is_active = models.BooleanField(default=True)
     description = models.CharField(max_length=255, blank=True, null=True)
@@ -38,7 +38,7 @@ class WorkFlow(WorkflowAbstractModel):
         )
 
 
-class WorkflowAction(WorkflowAbstractModel):
+class AbstractWorkflowAction(WorkflowAbstractModel):
     name = models.CharField(max_length=100, unique=True)
     label = models.CharField(max_length=100)
     action_type = models.CharField(
@@ -68,9 +68,9 @@ class WorkflowAction(WorkflowAbstractModel):
         return self.action_type == WORKFLOW_ACTION_TYPE_BACKWARD
 
 
-class ScrutinyWorkflowConfigurable(WorkflowAbstractModel):
+class AbstractScrutinyWorkflowConfigurable(WorkflowAbstractModel):
     workflow = models.ForeignKey(
-        WorkFlow,
+        AbstractWorkFlow,
         on_delete=models.DO_NOTHING,
         related_name="configs",
     )
@@ -84,7 +84,7 @@ class ScrutinyWorkflowConfigurable(WorkflowAbstractModel):
         help_text="Actors who can perform actions at this level.",
     )
     allowed_actions = models.ManyToManyField(
-        WorkflowAction,
+        AbstractWorkflowAction,
         related_name="level_configs",
         help_text="All actions that may be performed at this level (across all roles).",
     )
@@ -110,20 +110,20 @@ class ScrutinyWorkflowConfigurable(WorkflowAbstractModel):
         return self.actors.filter(is_active=True)
 
 
-class LevelActionNotificationTemplate(models.Model):
+class AbstractLevelActionNotificationTemplate(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     level_config = models.ForeignKey(
-        ScrutinyWorkflowConfigurable,
+        AbstractScrutinyWorkflowConfigurable,
         on_delete=models.CASCADE,
         related_name="notification_templates",
     )
     action = models.ForeignKey(
-        WorkflowAction,
+        AbstractWorkflowAction,
         on_delete=models.CASCADE,
         related_name="notification_templates",
     )
     notification_template = models.ForeignKey(
-        NotificationSettings,
+        AbstractNotificationSettings,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

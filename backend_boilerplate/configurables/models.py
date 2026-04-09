@@ -27,61 +27,61 @@ class AbstractConfigurableModel(BaseModel):
     def __str__(self):
         return self.name
     
-class Region(AbstractConfigurableModel):
+class AbstractRegion(AbstractConfigurableModel):
     name = models.CharField(max_length=100, unique=True)
 
     class Meta:
         abstract = True
 
-class District(AbstractConfigurableModel):
+class AbstractDistrict(AbstractConfigurableModel):
     name = models.CharField(max_length=100, unique=True)
     parent = models.ForeignKey(
-        Region, on_delete=models.CASCADE, related_name="districts"
+        AbstractRegion, on_delete=models.CASCADE, related_name="districts"
     )
 
     class Meta:
         abstract = True
 
 
-class County(AbstractConfigurableModel):
+class AbstractCounty(AbstractConfigurableModel):
     parent = models.ForeignKey(
-        District, on_delete=models.CASCADE, related_name="counties"
+        AbstractDistrict, on_delete=models.CASCADE, related_name="counties"
     )
 
     class Meta:
         abstract = True
 
 
-class SubCounty(AbstractConfigurableModel):
+class AbstractSubCounty(AbstractConfigurableModel):
     parent = models.ForeignKey(
-        County, on_delete=models.CASCADE, related_name="subcounties"
+        AbstractCounty, on_delete=models.CASCADE, related_name="subcounties"
     )
 
     class Meta:
         abstract = True
 
 
-class Parish(AbstractConfigurableModel):
+class AbstractParish(AbstractConfigurableModel):
     parent = models.ForeignKey(
-        SubCounty, on_delete=models.CASCADE, related_name="parishes"
+        AbstractSubCounty, on_delete=models.CASCADE, related_name="parishes"
     )
 
     class Meta:
         abstract = True
 
 
-class Village(AbstractConfigurableModel):
+class AbstractVillage(AbstractConfigurableModel):
     parent = models.ForeignKey(
-        Parish, on_delete=models.CASCADE, related_name="villages"
+        AbstractParish, on_delete=models.CASCADE, related_name="villages"
     )
 
     class Meta:
         abstract = True
 
 
-class Street(AbstractConfigurableModel):
+class AbstractStreet(AbstractConfigurableModel):
     parent = models.ForeignKey(
-        Village, on_delete=models.CASCADE, related_name="streets"
+        AbstractVillage, on_delete=models.CASCADE, related_name="streets"
     )
 
     class Meta:
@@ -96,43 +96,43 @@ class BaseLocationModel(BaseModel):
     unused hierarchy fields can be left null.
     """
     region = models.ForeignKey(
-        Region,
+        AbstractRegion,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     district = models.ForeignKey(
-        District,
+        AbstractDistrict,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     county = models.ForeignKey(
-        County,
+        AbstractCounty,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     sub_county = models.ForeignKey(
-        SubCounty,
+        AbstractSubCounty,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     parish = models.ForeignKey(
-        Parish,
+        AbstractParish,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     village = models.ForeignKey(
-        Village,
+        AbstractVillage,
         models.DO_NOTHING,
         null=True,
         blank=True,
     )
     street = models.ForeignKey(
-        Street,
+        AbstractStreet,
         models.DO_NOTHING,
         null=True,
         blank=True,
@@ -147,7 +147,7 @@ class BaseLocationModel(BaseModel):
     class Meta:
         abstract = True
 
-class Configuration(AbstractConfigurableModel):
+class AbstractConfiguration(AbstractConfigurableModel):
     key = models.CharField(max_length=50, unique=True)
     description = models.CharField(max_length=100, blank=True, null=True)
 
@@ -156,7 +156,7 @@ class Configuration(AbstractConfigurableModel):
         unique_together = ("key", "name")
 
 
-class NotificationRecipientGroups(BaseModel):
+class AbstractNotificationRecipientGroups(BaseModel):
     name = models.CharField(max_length=50, unique=True)
     recipients = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="recipients_groups"
@@ -166,7 +166,7 @@ class NotificationRecipientGroups(BaseModel):
         abstract = True
 
 
-class NotificationSettings(BaseModel):
+class AbstractNotificationSettings(BaseModel):
     notification_name = models.CharField(
         max_length=200, unique=True, null=False, blank=False
     )
@@ -177,7 +177,7 @@ class NotificationSettings(BaseModel):
     )
     trigger_event = models.CharField(max_length=100, null=True, blank=True)
     recipients = models.ForeignKey(
-        NotificationRecipientGroups,
+        AbstractNotificationRecipientGroups,
         related_name="recipients_groups",
         on_delete=models.CASCADE,
         null=True,

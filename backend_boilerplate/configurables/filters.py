@@ -7,32 +7,32 @@ class AbstractConfigurableFilter(GenericDateFilterSet):
     status = CharFilter(field_name="status", lookup_expr="iexact", label="Status")
 
 
-class RegionFilterSet(AbstractConfigurableFilter):
+class AbstractRegionFilterSet(AbstractConfigurableFilter):
     """Reusable filters for top-level locations without a parent relation."""
 
-class DistrictFilterSet(AbstractConfigurableFilter):
+class AbstractDistrictFilterSet(AbstractConfigurableFilter):
     region_name = CharFilter(field_name="parent__name", lookup_expr="icontains")
 
 
-class CountyFilterSet(AbstractConfigurableFilter):
+class AbstractCountyFilterSet(AbstractConfigurableFilter):
     district_name = CharFilter(field_name="parent__name", lookup_expr="icontains")
 
-class SubCountyFilterSet(AbstractConfigurableFilter):
+class AbstractSubCountyFilterSet(AbstractConfigurableFilter):
     county_name = CharFilter(field_name="parent__name", lookup_expr="icontains")
 
 
-class ParishFilterSet(AbstractConfigurableFilter):
+class AbstractParishFilterSet(AbstractConfigurableFilter):
     subcounty_name = CharFilter(field_name="parent__name", lookup_expr="icontains")
 
 
-class VillageFilterSet(AbstractConfigurableFilter):
+class AbstractVillageFilterSet(AbstractConfigurableFilter):
     parish_name = CharFilter(field_name="parent__name", lookup_expr="icontains")
 
 
-class StreetFilterSet(AbstractConfigurableFilter):
+class AbstractStreetFilterSet(AbstractConfigurableFilter):
     village_name = CharFilter(field_name="parent__name", lookup_expr="icontains")
 
-class BaseLocationFilterSet(GenericDateFilterSet):
+class AbstractBaseLocationFilterSet(GenericDateFilterSet):
     region = CharFilter(field_name="region__name", lookup_expr="iexact", label="Region")
     district = CharFilter(field_name="district__name", lookup_expr="iexact")
     parish = CharFilter(field_name="parish__name", lookup_expr="iexact")
@@ -43,5 +43,5 @@ class BaseLocationFilterSet(GenericDateFilterSet):
     longitude = CharFilter(field_name="longitude", lookup_expr="icontains")
     latitude = CharFilter(field_name="latitude", lookup_expr="icontains")
 
-class ConfigurationFilterSet(AbstractConfigurableFilter):
+class AbstractConfigurationFilterSet(AbstractConfigurableFilter):
     """Reusable filters for all configurable models."""
