@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
+import backend_boilerplate
 
 setup(
     name='backend-boilerplate',
-    version='0.1.1',
+    version=backend_boilerplate.__version__,
     author='Sunday Deogratias',
     author_email='sundaydeogratias8@gmail.com',
     description='A wrapper package for django services',
