@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from .serializers import SimplerDocumentSerializer
+from .serializers import AbstractSimplerDocumentSerializer
 
 def save_attachments(data, instance, model, context, replace=False):
     if data is not None:
@@ -18,7 +18,7 @@ def save_attachments(data, instance, model, context, replace=False):
                     caption=attachment_data.get("caption")
                 ).delete()
 
-            attachment = SimplerDocumentSerializer(
+            attachment = AbstractSimplerDocumentSerializer(
                 data=attachment_data, context=context
             )
             attachment.is_valid(raise_exception=True)
