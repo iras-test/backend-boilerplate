@@ -3,9 +3,9 @@ from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from utils.models import BaseModel
+from backend_boilerplate.utils.models import BaseModel
 from .helpers import get_file_path
-from utils.constants import DOCUMENT_TYPES, ALLOWED_FILE_EXTENSIONS
+from backend_boilerplate.utils.constants import DOCUMENT_TYPES, ALLOWED_FILE_EXTENSIONS
 
 class AbstractDocument(BaseModel):
     reference_number = models.CharField(max_length=50, null=True, blank=True)
