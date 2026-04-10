@@ -1,7 +1,7 @@
 from django.core.files.storage import default_storage
 from rest_framework import serializers
 from user_mgmt.serializers import SimplestUserSerializer
-from utils.serializers import (
+from backend_boilerplate.utils.serializers import (
     ActivityModelSerializer,
     CreateOnlyCurrentUserDefault,
 )
