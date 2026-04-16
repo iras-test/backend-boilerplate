@@ -170,7 +170,8 @@ class TemplateRenderer:
         """
         ctx = {
             "recipient_name": TemplateRenderer._full_name(recipient),
-            "date":           timezone.now().strftime("%d %B %Y %H:%M"),
+            "date": timezone.now().strftime("%d %B %Y %H:%M"),
+            "action_comment": getattr(instance, "action_comment", "") or "",
         }
         for field in instance._meta.get_fields():
             try:
