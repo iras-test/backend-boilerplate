@@ -9,6 +9,7 @@ from rest_framework.fields import SkipField
 from .helpers import get_external_user, post_nested_save
 from generic_relations.relations import GenericRelatedField
 from actstream.models import Action
+from django.contrib.contenttypes.models import ContentType
 
 
 
@@ -61,6 +62,53 @@ class ActivityModelSerializer(serializers.ModelSerializer):
         required=False,
         write_only=True,
     )
+
+    actor_repr = serializers.SerializerMethodField()
+    target_repr = serializers.SerializerMethodField()
+    action_object_repr = serializers.SerializerMethodField()
+
+    actor_content_type_name = serializers.SerializerMethodField()
+    target_content_type_name = serializers.SerializerMethodField()
+    action_object_content_type_name = serializers.SerializerMethodField()
+
+    def _resolve_object(self, content_type_id, object_id):
+        """Helper to fetch the actual object and return its string representation."""
+        if not content_type_id or not object_id:
+            return None
+        try:
+            ct = ContentType.objects.get_for_id(content_type_id)
+            obj = ct.get_object_for_this_type(pk=object_id)
+            return str(obj)
+        except Exception:
+            return None
+
+    def _resolve_content_type_name(self, content_type_id):
+        """Helper to return the model name for a content type."""
+        if not content_type_id:
+            return None
+        try:
+            ct = ContentType.objects.get_for_id(content_type_id)
+            return f"{ct.app_label}.{ct.model}"
+        except Exception:
+            return None
+
+    def get_actor_repr(self, obj):
+        return self._resolve_object(obj.actor_content_type_id, obj.actor_object_id)
+
+    def get_target_repr(self, obj):
+        return self._resolve_object(obj.target_content_type_id, obj.target_object_id)
+
+    def get_action_object_repr(self, obj):
+        return self._resolve_object(obj.action_object_content_type_id, obj.action_object_object_id)
+
+    def get_actor_content_type_name(self, obj):
+        return self._resolve_content_type_name(obj.actor_content_type_id)
+
+    def get_target_content_type_name(self, obj):
+        return self._resolve_content_type_name(obj.target_content_type_id)
+
+    def get_action_object_content_type_name(self, obj):
+        return self._resolve_content_type_name(obj.action_object_content_type_id)
 
     def validate(self, attrs):
         if self.instance and self.context.get("request"):
