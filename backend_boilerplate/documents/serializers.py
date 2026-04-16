@@ -2,7 +2,7 @@ from django.core.files.storage import default_storage
 from rest_framework import serializers
 from user_mgmt.serializers import SimplestUserSerializer
 from backend_boilerplate.utils.serializers import (
-    ActivityModelSerializer,
+    ActivitySerializer,
     CreateOnlyCurrentUserDefault,
 )
 
@@ -38,7 +38,7 @@ class AbstractSimplestDocumentSerializer(serializers.ModelSerializer):
         extra_kwargs = {"reference_number": {"read_only": True}}
 
 
-class AbstractSimpleDocumentSerializer(ActivityModelSerializer):
+class AbstractSimpleDocumentSerializer(ActivitySerializer):
     created_by = SimplestUserSerializer(
         required=False, default=CreateOnlyCurrentUserDefault()
     )
@@ -55,7 +55,7 @@ class AbstractSimpleDocumentSerializer(ActivityModelSerializer):
         exclude = ("object_id", "content_type")
         # fields = "__all__"
 
-class AbstractSimplerDocumentSerializer(ActivityModelSerializer):
+class AbstractSimplerDocumentSerializer(ActivitySerializer):
     created_by = SimplestUserSerializer(
         required=False, default=CreateOnlyCurrentUserDefault()
     )

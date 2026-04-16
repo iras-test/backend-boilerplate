@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
 from backend_boilerplate.user_mgmt.serializers import SimplestUserSerializer
-from backend_boilerplate.utils.serializers import ActivityModelSerializer, CreateOnlyCurrentUserDefault, NestedModelSerializer
+from backend_boilerplate.utils.serializers import ActivitySerializer, CreateOnlyCurrentUserDefault, NestedModelSerializer
 
 
 
-class WorkFlowSerializer(ActivityModelSerializer):
+class WorkFlowSerializer(ActivitySerializer):
     created_by = SimplestUserSerializer(
         required=False,
         default=CreateOnlyCurrentUserDefault(),
@@ -27,7 +27,7 @@ class WorkflowListSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ["id", "name", "is_active", "description", "number_of_levels"]
 
-class WorkflowActionSerializer(ActivityModelSerializer):
+class WorkflowActionSerializer(ActivitySerializer):
     created_by = SimplestUserSerializer(
         required=False,
         default=CreateOnlyCurrentUserDefault(),
@@ -69,7 +69,7 @@ class LevelActionNotificationTemplateSerializer(serializers.ModelSerializer):
         exclude = ["level_config"]
 
 
-class ScrutinyWorkflowConfigurableSerializer(ActivityModelSerializer, NestedModelSerializer):
+class ScrutinyWorkflowConfigurableSerializer(ActivitySerializer, NestedModelSerializer):
     created_by = SimplestUserSerializer(
         required=False,
         default=CreateOnlyCurrentUserDefault(),

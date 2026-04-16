@@ -51,7 +51,7 @@ class CustomGenericRelatedField(GenericRelatedField):
             instance.__class__
         )
 
-class ActivityModelSerializer(serializers.ModelSerializer):
+class ActivitySerializer(serializers.ModelSerializer):
     action_comment = serializers.CharField(required=False, write_only=True)
     supporting_documents = serializers.ListField(
         child=serializers.FileField(
