@@ -24,6 +24,7 @@ class ScrutinyWorkflowEngine:
     workflow_action_model = None
     workflow_config_model = None
     notification_template_model = None
+    system = None
 
     def __init__(
         self,
@@ -342,7 +343,9 @@ class ScrutinyWorkflowEngine:
             return
 
         context = TemplateRenderer.build_generic_context(self.instance, recipient)
-        subject, html = TemplateRenderer.render_email_template(template, context)
+        subject, html = TemplateRenderer.render_email_template(
+            template, context, system=self.system
+        )
 
         def send_fn():
             send_email(

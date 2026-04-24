@@ -8,7 +8,9 @@ logger = logging.getLogger(__name__)
 class TemplateRenderer:
 
     @classmethod
-    def render_email_template(cls, template, context: dict) -> tuple[str, str]:
+    def render_email_template(
+        cls, template, context: dict, system: str
+    ) -> tuple[str, str]:
         """
         Render an EmailTemplate instance against a context dict.
 
@@ -50,7 +52,7 @@ class TemplateRenderer:
 <div style="max-width:{max_width};margin:40px auto;background:#ffffff;border-radius:8px;overflow:hidden;">
 
     <div style="background:#ba513f;padding:20px 30px;">
-    <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:0.5px;">NLTSS</span>
+    <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:0.5px;">{system}</span>
     </div>
 
     <div style="padding:30px;">
@@ -186,9 +188,12 @@ class TemplateRenderer:
     def _full_name(user) -> str:
         if not user:
             return "User"
-        if hasattr(user, "get_full_name"):
-            return user.get_full_name() or getattr(user, "username", "User")
-        return str(user)
+
+        return (
+            getattr(user, "full_name", None)
+            or getattr(user, "get_full_name", lambda: "")()
+            or getattr(user, "email", "User")
+        )
 
     @staticmethod
     def _fk_name(instance, field_name: str) -> str:
