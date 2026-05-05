@@ -32,7 +32,10 @@ def handle_email(
             to=to_emails,
         )
 
-        email.attach_alternative(render_to_string(template_name, context), "text/html")
+        if html and template_name:
+            email.attach_alternative(render_to_string(template_name, context), "text/html")
+        elif html_message:
+            email.attach_alternative(html_message, "text/html")
 
         if len(attachment_file) > 0:
             for attachment in attachment_file or []:
