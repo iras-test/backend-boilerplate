@@ -41,6 +41,11 @@ class AbstractWorkFlow(WorkflowAbstractModel):
 
 
 class AbstractWorkflowAction(WorkflowAbstractModel):
+    workflow = models.ForeignKey(
+        AbstractWorkFlow,
+        on_delete=models.DO_NOTHING,
+        related_name="configs",
+    )
     name = models.CharField(max_length=100, unique=True)
     label = models.CharField(max_length=100)
     action_type = models.CharField(
@@ -71,11 +76,6 @@ class AbstractWorkflowAction(WorkflowAbstractModel):
 
 
 class AbstractScrutinyWorkflowConfigurable(WorkflowAbstractModel):
-    workflow = models.ForeignKey(
-        AbstractWorkFlow,
-        on_delete=models.DO_NOTHING,
-        related_name="configs",
-    )
     scrutiny_level = models.IntegerField(default=1)
     level_description = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)

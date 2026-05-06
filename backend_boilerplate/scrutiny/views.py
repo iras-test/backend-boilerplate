@@ -1,16 +1,8 @@
-from itertools import chain
-
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend_boilerplate.utils.views import BaseViewSet
-from backend_boilerplate.utils.constants import (
-    WORKFLOW_ACTION_TYPE_APPROVE,
-    WORKFLOW_ACTION_TYPE_BACKWARD,
-    WORKFLOW_ACTION_TYPE_FORWARD,
-    WORKFLOW_ACTION_TYPE_REJECT,
-)
 
 
 class BaseScrutinyWorkflowConfigurableViewSet(BaseViewSet):
@@ -20,6 +12,7 @@ class BaseScrutinyWorkflowConfigurableViewSet(BaseViewSet):
         list_serializer_class, configs_by_role_serializer_class,
         simplified_action_serializer_class
     """
+
     list_serializer_class = None
     configs_by_role_serializer_class = None
     simplified_action_serializer_class = None
@@ -30,7 +23,7 @@ class BaseScrutinyWorkflowConfigurableViewSet(BaseViewSet):
         return self.serializer_class
 
     @action(detail=False, methods=["get"], url_path="by-actor")
-    def workflow_config_by_actor(self, request):
+    def get_workflow_config_by_actor(self, request):
         actor_id = request.query_params.get("actor_id")
         workflow_name = request.query_params.get("workflow_name")
         level = request.query_params.get("level")
@@ -60,8 +53,8 @@ class BaseScrutinyWorkflowConfigurableViewSet(BaseViewSet):
         serializer = self.configs_by_role_serializer_class(config)
         return Response(serializer.data)
 
-    @action(detail=False, methods=["get"], url_path="next-level-actions")
-    def next_level_actions(self, request):
+    @action(detail=False, methods=["get"], url_path="current-level-actions")
+    def current_level_actions(self, request):
         actor_id = request.query_params.get("actor_id")
         workflow_name = request.query_params.get("workflow_name")
         current_level = request.query_params.get("current_level")
@@ -88,45 +81,13 @@ class BaseScrutinyWorkflowConfigurableViewSet(BaseViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        next_config = (
-            self.get_queryset()
-            .filter(
-                workflow__name=workflow_name,
-                scrutiny_level=int(current_level) + 1,
-            )
-            .first()
-        )
-
         current_level_actions = current_config.allowed_actions.filter(
-            action_type__in=[WORKFLOW_ACTION_TYPE_BACKWARD, WORKFLOW_ACTION_TYPE_REJECT],
             is_active=True,
         )
 
-        next_level_actions = []
-        if next_config:
-            has_terminal_actions = (
-                next_config.allowed_actions.filter(
-                    action_type=WORKFLOW_ACTION_TYPE_APPROVE, is_active=True
-                ).exists()
-                and next_config.allowed_actions.filter(
-                    action_type=WORKFLOW_ACTION_TYPE_REJECT, is_active=True
-                ).exists()
-            )
-            if has_terminal_actions:
-                next_level_actions = next_config.allowed_actions.filter(
-                    is_active=True,
-                ).exclude(action_type=WORKFLOW_ACTION_TYPE_BACKWARD)
-            else:
-                next_level_actions = next_config.allowed_actions.filter(
-                    action_type=WORKFLOW_ACTION_TYPE_FORWARD,
-                    is_active=True,
-                )
-
-        all_actions = list(
-            {a.id: a for a in chain(next_level_actions, current_level_actions)}.values()
+        serializer = self.simplified_action_serializer_class(
+            current_level_actions, many=True
         )
-
-        serializer = self.simplified_action_serializer_class(all_actions, many=True)
         return Response(serializer.data)
 
 

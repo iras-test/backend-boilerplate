@@ -9,6 +9,7 @@ from backend_boilerplate.notifications.template_renderer import TemplateRenderer
 from backend_boilerplate.utils.constants import (
     WORKFLOW_ACTION_TYPE_APPROVE,
     WORKFLOW_ACTION_TYPE_BACKWARD,
+    WORKFLOW_ACTION_TYPE_DEFERRED,
     WORKFLOW_ACTION_TYPE_FORWARD,
     WORKFLOW_ACTION_TYPE_REJECT,
 )
@@ -25,6 +26,7 @@ class ScrutinyWorkflowEngine:
     workflow_config_model = None
     notification_template_model = None
     system = None
+    banner_color = "#2E75B6"  # Override per system
 
     def __init__(
         self,
@@ -35,10 +37,12 @@ class ScrutinyWorkflowEngine:
         on_approved_callback=None,
         on_rejected_callback=None,
         on_pending_callback=None,
+        on_deferred_callback=None,
         created_by=None,
         pending_status: str | None = None,
         approved_status: str | None = None,
         rejected_status: str | None = None,
+        deferred_status: str | None = None,
     ):
         self.instance = instance
         self.workflow_name = workflow_name
@@ -47,10 +51,12 @@ class ScrutinyWorkflowEngine:
         self.on_approved_callback = on_approved_callback
         self.on_rejected_callback = on_rejected_callback
         self.on_pending_callback = on_pending_callback
+        self.on_deferred_callback = on_deferred_callback
         self.created_by = created_by
         self.pending_status = pending_status
         self.approved_status = approved_status
         self.rejected_status = rejected_status
+        self.deferred_status = deferred_status
 
         self._workflow = None
         self._level_config = None
@@ -63,7 +69,6 @@ class ScrutinyWorkflowEngine:
     def execute(self):
         self._resolve_context()
         self._resolve_action()
-        self._resolve_next_level_config()
         self._assert_user_has_role()
         self._assert_action_is_allowed_at_level()
         self._route()
@@ -115,10 +120,6 @@ class ScrutinyWorkflowEngine:
                 }
             )
 
-    def _resolve_next_level_config(self):
-        next_level = self._current_level + 1
-        self._next_level_config = self._get_level_config(next_level)
-
     def _assert_user_has_role(self):
         if not self._level_config.actors.exists():
             raise ValidationError(
@@ -137,29 +138,15 @@ class ScrutinyWorkflowEngine:
             )
 
     def _assert_action_is_allowed_at_level(self):
-        if self._action_obj.action_type == WORKFLOW_ACTION_TYPE_BACKWARD:
-            return
-        if self._action_obj.action_type == WORKFLOW_ACTION_TYPE_REJECT:
-            return
-
-        if not self._next_level_config:
-            raise ValidationError(
-                {
-                    "workflow": (
-                        f"No configuration found for the next level after {self._current_level} "
-                        f"in workflow '{self.workflow_name}'."
-                    )
-                }
-            )
-        if not self._next_level_config.is_action_allowed(self.action_name):
+        if not self._level_config.is_action_allowed(self.action_name):
             allowed = list(
-                self._next_level_config.allowed_actions.filter(
-                    is_active=True
-                ).values_list("name", flat=True)
+                self._level_config.allowed_actions.filter(is_active=True).values_list(
+                    "name", flat=True
+                )
             )
             raise PermissionDenied(
                 f"Action '{self.action_name}' is not permitted at level "
-                f"{self._current_level + 1} of '{self.workflow_name}'. "
+                f"{self._current_level} of '{self.workflow_name}'. "
                 f"Allowed: {allowed}."
             )
 
@@ -169,6 +156,7 @@ class ScrutinyWorkflowEngine:
             WORKFLOW_ACTION_TYPE_REJECT: self._apply_rejected,
             WORKFLOW_ACTION_TYPE_FORWARD: self._apply_pending,
             WORKFLOW_ACTION_TYPE_BACKWARD: self._apply_send_back,
+            WORKFLOW_ACTION_TYPE_DEFERRED: self._apply_deferred,
         }
         handler = dispatch.get(self._action_obj.action_type)
         if not handler:
@@ -183,10 +171,17 @@ class ScrutinyWorkflowEngine:
         handler()
 
     def _apply_pending(self):
-        next_level = self._current_level + 1
+        target_level = self._action_obj.target_level
+
+        if not target_level:
+            raise ValidationError(
+                {
+                    "action": f"Action '{self.action_name}' has no target_level configured."
+                }
+            )
 
         self.instance.status = self.pending_status or self._action_obj.name
-        self.instance.current_scrutiny_level = next_level
+        self.instance.current_scrutiny_level = target_level
 
         if hasattr(self.instance, "sent_back"):
             self.instance.sent_back = False
@@ -196,27 +191,14 @@ class ScrutinyWorkflowEngine:
         else:
             self.instance.save(update_fields=["status", "current_scrutiny_level"])
 
-        logger.info(
-            "Forwarded — instance=%s workflow='%s' level %s → %s",
-            self.instance.pk,
-            self.workflow_name,
-            self._current_level,
-            next_level,
-        )
-
         if self.on_pending_callback:
             self.on_pending_callback(self.instance)
 
-        if not self._next_level_config:
-            logger.warning(
-                "No config for level %s in '%s'. No notification sent.",
-                next_level,
-                self.workflow_name,
-            )
+        next_config = self._get_level_config(target_level)
+        if not next_config:
             return
 
         notification = self._get_notification_template()
-
         if not notification:
             return
 
@@ -224,7 +206,7 @@ class ScrutinyWorkflowEngine:
             notification.notify_actors
             or not notification.notification_recipients.exists()
         ):
-            recipients = self._users_for_level(self._next_level_config)
+            recipients = self._users_for_level(next_config)
         else:
             recipients = notification.notification_recipients.filter(is_active=True)
 
@@ -260,35 +242,31 @@ class ScrutinyWorkflowEngine:
                     self._send_email(recipient=user)
 
     def _apply_approved(self):
-        next_level = self._current_level + 1
-        self.instance.current_scrutiny_level = next_level
         self.instance.status = self.approved_status or "approved"
-        self.instance.save(update_fields=["status", "current_scrutiny_level"])
+        self.instance.save(update_fields=["status"])
 
         if self.on_approved_callback:
             self.on_approved_callback(self.instance)
 
         notification = self._get_notification_template()
+        if not notification:
+            return
 
-        if notification and notification.notification_recipients.exists():
+        if notification.notification_recipients.exists():
             recipients = notification.notification_recipients.filter(is_active=True)
             for user in recipients:
                 self._send_email(recipient=user)
             if notification.notify_owner and self._owner:
                 if not recipients.filter(pk=self._owner.pk).exists():
                     self._send_email(recipient=self._owner)
-        else:
-            self._send_email(recipient=self._owner)
+        elif notification.notify_actors:
+            for user in self._users_for_level(self._level_config):
+                self._send_email(recipient=user)
 
     def _apply_rejected(self):
         self.instance.status = self.rejected_status or "rejected"
         self.instance.save(update_fields=["status"])
 
-        logger.info(
-            "Rejected — instance=%s workflow='%s'",
-            self.instance.pk,
-            self.workflow_name,
-        )
 
         if self.on_rejected_callback:
             self.on_rejected_callback(self.instance)
@@ -305,19 +283,27 @@ class ScrutinyWorkflowEngine:
         else:
             self._send_email(recipient=self._owner)
 
-    def _get_notification_template(self) -> None:
-        next_level = self._current_level + 1
-        level_config = (
-            self.workflow_config_model.objects.prefetch_related(
-                "actors", "allowed_actions"
-            )
-            .filter(
-                workflow=self._workflow,
-                scrutiny_level=next_level,
-                is_active=True,
-            )
-            .first()
-        )
+    def _apply_deferred(self):
+        self.instance.status = self.deferred_status or "deferred"
+        self.instance.save(update_fields=["status"])
+
+        if self.on_deferred_callback:
+            self.on_deferred_callback(self.instance)
+
+        notification = self._get_notification_template()
+
+        if notification and notification.notification_recipients.exists():
+            recipients = notification.notification_recipients.filter(is_active=True)
+            for user in recipients:
+                self._send_email(recipient=user)
+            if notification.notify_owner and self._owner:
+                if not recipients.filter(pk=self._owner.pk).exists():
+                    self._send_email(recipient=self._owner)
+        else:
+            self._send_email(recipient=self._owner)
+
+    def _get_notification_template(self):
+        level_config = self._get_level_config(self._current_level)
 
         return (
             self.notification_template_model.objects.filter(
@@ -344,7 +330,7 @@ class ScrutinyWorkflowEngine:
 
         context = TemplateRenderer.build_generic_context(self.instance, recipient)
         subject, html = TemplateRenderer.render_email_template(
-            template, context, system=self.system
+            template, context, system=self.system, banner_color=self.banner_color
         )
 
         def send_fn():
