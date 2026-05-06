@@ -46,7 +46,7 @@ class AbstractWorkflowAction(WorkflowAbstractModel):
         on_delete=models.DO_NOTHING,
         related_name="configs",
     )
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     label = models.CharField(max_length=100)
     action_type = models.CharField(
         max_length=20,

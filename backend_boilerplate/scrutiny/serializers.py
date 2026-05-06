@@ -139,6 +139,7 @@ class ScrutinyWorkflowConfigurableListSerializer(serializers.ModelSerializer):
         source="allowed_actions", many=True, read_only=True
     )
     actor_details = SimplestUserSerializer(source="actors", many=True, read_only=True)
+    workflow_name = serializers.CharField(source="workflow.name", read_only=True)
 
     class Meta:
         fields = [
@@ -146,6 +147,8 @@ class ScrutinyWorkflowConfigurableListSerializer(serializers.ModelSerializer):
             "scrutiny_level",
             "level_description",
             "is_active",
+            "workflow_name",
+            "workflow",
             "action_details",
             "actor_details",
             "notification_templates",
