@@ -64,6 +64,7 @@ class AbstractWorkflowAction(WorkflowAbstractModel):
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        unique_together = ("workflow", "name")
         abstract = True
 
     def __str__(self):
@@ -79,7 +80,11 @@ class AbstractScrutinyWorkflowConfigurable(WorkflowAbstractModel):
     scrutiny_level = models.IntegerField(default=1)
     level_description = models.CharField(max_length=100, blank=True, null=True)
     is_active = models.BooleanField(default=True)
-
+    workflow = models.ForeignKey(
+        AbstractWorkFlow,
+        on_delete=models.DO_NOTHING,
+        related_name="configs",
+    )
     actors = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name="scrutiny_workflow_configs",
