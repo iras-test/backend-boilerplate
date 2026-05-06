@@ -81,7 +81,7 @@ class ScrutinyWorkflowConfigurableSerializer(ActivitySerializer, NestedModelSeri
         required=False,
         default=CreateOnlyCurrentUserDefault(),
     )
-
+    workflow_name = serializers.CharField(source="workflow.name", read_only=True)
     action_details = SimplifiedWorkflowActionSerializer(
         source="allowed_actions", many=True, read_only=True
     )
@@ -95,6 +95,8 @@ class ScrutinyWorkflowConfigurableSerializer(ActivitySerializer, NestedModelSeri
         fields = [
             "id",
             "scrutiny_level",
+            "workflow_name",
+            "workflow",
             "allowed_actions",
             "actors",
             "level_description",
