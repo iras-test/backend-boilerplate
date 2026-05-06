@@ -9,7 +9,7 @@ class TemplateRenderer:
 
     @classmethod
     def render_email_template(
-        cls, template, context: dict, system: str
+        cls, template, context: dict, system: str, banner_color: str = "#2E75B6"
     ) -> tuple[str, str]:
         """
         Render an EmailTemplate instance against a context dict.
@@ -51,7 +51,7 @@ class TemplateRenderer:
 <body style="margin:0;padding:0;background:{bg_color};font-family:Arial,sans-serif;">
 <div style="max-width:{max_width};margin:40px auto;background:#ffffff;border-radius:8px;overflow:hidden;">
 
-    <div style="background:#ba513f;padding:20px 30px;">
+    <div style="background:{banner_color};padding:20px 30px;">
     <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:0.5px;">{system}</span>
     </div>
 
@@ -74,58 +74,57 @@ class TemplateRenderer:
 
         return subject, html
 
-
     @staticmethod
     def _render_heading(block: dict, context: Context) -> str:
-        html        = Template(block.get("html", "")).render(context)
-        color       = block.get("color", "#374151")
-        bg          = block.get("backgroundColor", "transparent")
-        font_size   = block.get("fontSize", "22px")
+        html = Template(block.get("html", "")).render(context)
+        color = block.get("color", "#374151")
+        bg = block.get("backgroundColor", "transparent")
+        font_size = block.get("fontSize", "22px")
         font_weight = block.get("fontWeight", "600")
-        text_align  = block.get("textAlign", "left")
-        padding     = block.get("padding", "0 0 10px")
+        text_align = block.get("textAlign", "left")
+        padding = block.get("padding", "0 0 10px")
         return (
             f'<h2 style="margin:0;padding:{padding};color:{color};background:{bg};'
             f'font-size:{font_size};font-weight:{font_weight};text-align:{text_align};">'
-            f'{html}</h2>'
+            f"{html}</h2>"
         )
 
     @staticmethod
     def _render_text(block: dict, context: Context) -> str:
-        html        = Template(block.get("html", "")).render(context)
-        color       = block.get("color", "#374151")
-        bg          = block.get("backgroundColor", "transparent")
-        font_size   = block.get("fontSize", "15px")
+        html = Template(block.get("html", "")).render(context)
+        color = block.get("color", "#374151")
+        bg = block.get("backgroundColor", "transparent")
+        font_size = block.get("fontSize", "15px")
         font_weight = block.get("fontWeight", "400")
-        text_align  = block.get("textAlign", "left")
-        padding     = block.get("padding", "0 0 14px")
+        text_align = block.get("textAlign", "left")
+        padding = block.get("padding", "0 0 14px")
         return (
             f'<div style="padding:{padding};color:{color};background:{bg};'
             f'font-size:{font_size};font-weight:{font_weight};text-align:{text_align};">'
-            f'{html}</div>'
+            f"{html}</div>"
         )
 
     @staticmethod
     def _render_button(block: dict, context: Context) -> str:
-        label   = Template(block.get("html", "Click Here")).render(context)
-        href    = Template(block.get("href", "#")).render(context)
-        color   = block.get("color", "#FFFFFF")
-        bg      = block.get("backgroundColor", "#2E75B6")
-        radius  = block.get("borderRadius", "6px")
+        label = Template(block.get("html", "Click Here")).render(context)
+        href = Template(block.get("href", "#")).render(context)
+        color = block.get("color", "#FFFFFF")
+        bg = block.get("backgroundColor", "#B64E2E")
+        radius = block.get("borderRadius", "6px")
         padding = block.get("padding", "12px 24px")
-        align   = block.get("align", "center")
+        align = block.get("align", "center")
         return (
             f'<div style="text-align:{align};padding:16px 0;">'
             f'<a href="{href}" style="display:inline-block;padding:{padding};'
-            f'background:{bg};color:{color};border-radius:{radius};'
+            f"background:{bg};color:{color};border-radius:{radius};"
             f'text-decoration:none;font-family:Arial,sans-serif;font-size:15px;">'
-            f'{label}</a></div>'
+            f"{label}</a></div>"
         )
 
     @staticmethod
     def _render_image(block: dict, context: Context) -> str:
-        src   = Template(block.get("src", "")).render(context)
-        alt   = block.get("alt", "")
+        src = Template(block.get("src", "")).render(context)
+        alt = block.get("alt", "")
         align = block.get("align", "center")
         width = block.get("maxWidth", "100%")
         if not src:
@@ -133,15 +132,14 @@ class TemplateRenderer:
         return (
             f'<div style="text-align:{align};padding:10px 0;">'
             f'<img src="{src}" alt="{alt}" style="max-width:{width};height:auto;display:inline-block;">'
-            f'</div>'
+            f"</div>"
         )
 
     @staticmethod
     def _render_divider(block: dict, context: Context) -> str:
-        color   = block.get("color", "#E5E7EB")
+        color = block.get("color", "#E5E7EB")
         padding = block.get("padding", "16px 0")
         return f'<div style="padding:{padding};"><hr style="border:none;border-top:1px solid {color};margin:0;"></div>'
-
 
     BLOCK_RENDERERS = {
         "Heading": _render_heading,
@@ -159,9 +157,6 @@ class TemplateRenderer:
             logger.warning("EmailTemplate: unknown block type '%s' — skipped.", block_type)
             return ""
         return renderer(block, context)
-
-    
-
 
     @staticmethod
     def build_generic_context(instance, recipient) -> dict:
