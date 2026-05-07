@@ -110,7 +110,7 @@ class ScrutinyWorkflowEngine:
 
     def _resolve_action(self):
         self._action_obj = self.workflow_action_model.objects.filter(
-            name=self.action_name, is_active=True
+            name=self.action_name, is_active=True, workflow=self._workflow
         ).first()
 
         if not self._action_obj:
