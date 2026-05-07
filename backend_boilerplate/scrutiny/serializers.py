@@ -1,7 +1,12 @@
 from rest_framework import serializers
 
 from backend_boilerplate.user_mgmt.serializers import SimplestUserSerializer
-from backend_boilerplate.utils.serializers import ActivitySerializer, CreateOnlyCurrentUserDefault, NestedModelSerializer
+from backend_boilerplate.utils.serializers import (
+    ActivitySerializer,
+    CreateOnlyCurrentUserDefault,
+    NestedModelSerializer,
+    SimpleUserSerializer,
+)
 
 
 
@@ -72,6 +77,15 @@ class WorkflowActionListSerializer(serializers.ModelSerializer):
         ]
 
 class LevelActionNotificationTemplateSerializer(serializers.ModelSerializer):
+    notification_recipient_details = SimpleUserSerializer(
+        required=False, source="notification_recipients", read_only=True, many=True
+    )
+
+    notification_template_name = serializers.CharField(
+        source="notification_template.notification_name", read_only=True
+    )
+
+    action_name = serializers.CharField(source="action.name", read_only=True)
     class Meta:
         exclude = ["level_config"]
 
