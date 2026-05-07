@@ -46,7 +46,7 @@ class AbstractWorkflowAction(WorkflowAbstractModel):
         on_delete=models.DO_NOTHING,
         related_name="configs",
     )
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     label = models.CharField(max_length=100)
     action_type = models.CharField(
         max_length=20,
@@ -56,10 +56,7 @@ class AbstractWorkflowAction(WorkflowAbstractModel):
     target_level = models.IntegerField(
         null=True,
         blank=True,
-        help_text=(
-            "Set this to send a submission back to a specific prior level. "
-            "Leave NULL for normal forward/approve/reject routing."
-        ),
+        help_text=("Set this for all actions except rejected/approved/deferred"),
     )
     is_active = models.BooleanField(default=True)
 
