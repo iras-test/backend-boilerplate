@@ -90,6 +90,20 @@ class BaseScrutinyWorkflowConfigurableViewSet(BaseViewSet):
         )
         return Response(serializer.data)
 
+    @action(detail=True, methods=["patch"], url_path="activate")
+    def activate_scrutiny_workflow_config(self, request, pk=None):
+        config = self.get_queryset().model.all_objects.filter(pk=pk).first()
+        if not config:
+            return Response(
+                {"detail": "Scrutiny Config not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        config.is_active = True
+        config.save(update_fields=["is_active"])
+        return Response(
+            {"detail": "Scrutiny Config activated."}, status=status.HTTP_200_OK
+        )
+
 
 class BaseWorkflowActionViewSet(BaseViewSet):
     """
@@ -107,6 +121,8 @@ class BaseWorkflowActionViewSet(BaseViewSet):
     @action(detail=False, methods=["get"], url_path="all")
     def all_actions(self, request):
         queryset = self.get_queryset().model.all_objects.all()
+
+        queryset = self.filter_queryset(queryset)
 
         page = self.paginate_queryset(queryset)
         if page is not None:
