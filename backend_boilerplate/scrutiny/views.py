@@ -104,6 +104,20 @@ class BaseScrutinyWorkflowConfigurableViewSet(BaseViewSet):
             {"detail": "Scrutiny Config activated."}, status=status.HTTP_200_OK
         )
 
+    @action(detail=True, methods=["patch"], url_path="deactivate")
+    def deactivate_scrutiny_workflow_config(self, request, pk=None):
+        config = self.get_queryset().model.all_objects.filter(pk=pk).first()
+        if not config:
+            return Response(
+                {"detail": "Scrutiny Config not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        config.is_active = False
+        config.save(update_fields=["is_active"])
+        return Response(
+            {"detail": "Scrutiny Config deactivated."}, status=status.HTTP_200_OK
+        )
+
 
 class BaseWorkflowActionViewSet(BaseViewSet):
     """
@@ -142,6 +156,17 @@ class BaseWorkflowActionViewSet(BaseViewSet):
         obj.is_active = True
         obj.save(update_fields=["is_active"])
         return Response({"detail": "Action activated."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["patch"], url_path="deactivate")
+    def deactivate(self, request, pk=None):
+        obj = self.get_queryset().model.all_objects.filter(pk=pk).first()
+        if not obj:
+            return Response(
+                {"detail": "Action not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        obj.is_active = False
+        obj.save(update_fields=["is_active"])
+        return Response({"detail": "Action deactivated."}, status=status.HTTP_200_OK)
 
 
 class BaseWorkFlowViewSet(BaseViewSet):
