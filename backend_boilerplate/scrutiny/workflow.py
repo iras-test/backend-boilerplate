@@ -1,8 +1,8 @@
 import logging
 
 from django.conf import settings
-from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from backend_boilerplate.notifications.tasks.emails import send_email
 from backend_boilerplate.notifications.template_renderer import TemplateRenderer
@@ -13,7 +13,6 @@ from backend_boilerplate.utils.constants import (
     WORKFLOW_ACTION_TYPE_FORWARD,
     WORKFLOW_ACTION_TYPE_REJECT,
 )
-
 
 logger = logging.getLogger(__name__)
 User = settings.AUTH_USER_MODEL
@@ -38,6 +37,7 @@ class ScrutinyWorkflowEngine:
         on_rejected_callback=None,
         on_pending_callback=None,
         on_deferred_callback=None,
+        on_backward_callback=None,
         created_by=None,
         pending_status: str | None = None,
         approved_status: str | None = None,
@@ -52,6 +52,7 @@ class ScrutinyWorkflowEngine:
         self.on_rejected_callback = on_rejected_callback
         self.on_pending_callback = on_pending_callback
         self.on_deferred_callback = on_deferred_callback
+        self.on_backward_callback = on_backward_callback
         self.created_by = created_by
         self.pending_status = pending_status
         self.approved_status = approved_status
@@ -236,6 +237,9 @@ class ScrutinyWorkflowEngine:
                     )
                 }
             )
+
+        if self.on_backward_callback:
+            self.on_backward_callback(self.instance)
 
         self.instance.status = target_status
         self.instance.current_scrutiny_level = target_level
