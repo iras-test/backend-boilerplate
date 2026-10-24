@@ -1,4 +1,5 @@
 import logging
+from typing import Tuple
 from django.template import Context, Template
 from django.utils import timezone
 
@@ -10,7 +11,7 @@ class TemplateRenderer:
     @classmethod
     def render_email_template(
         cls, template, context: dict, system: str, banner_color: str = "#2E75B6"
-    ) -> tuple[str, str]:
+    ) -> Tuple[str, str]:
         """
         Render an EmailTemplate instance against a context dict.
 
@@ -142,11 +143,11 @@ class TemplateRenderer:
         return f'<div style="padding:{padding};"><hr style="border:none;border-top:1px solid {color};margin:0;"></div>'
 
     BLOCK_RENDERERS = {
-        "Heading": _render_heading,
-        "Text":    _render_text,
-        "Button":  _render_button,
-        "Image":   _render_image,
-        "Divider": _render_divider,
+        "Heading": _render_heading.__func__,
+        "Text":    _render_text.__func__,
+        "Button":  _render_button.__func__,
+        "Image":   _render_image.__func__,
+        "Divider": _render_divider.__func__,
     }
 
     @classmethod

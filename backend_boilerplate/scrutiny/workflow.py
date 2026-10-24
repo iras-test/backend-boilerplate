@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from django.conf import settings
 from django.db import transaction
@@ -39,10 +40,10 @@ class ScrutinyWorkflowEngine:
         on_deferred_callback=None,
         on_backward_callback=None,
         created_by=None,
-        pending_status: str | None = None,
-        approved_status: str | None = None,
-        rejected_status: str | None = None,
-        deferred_status: str | None = None,
+        pending_status: Optional[str] = None,
+        approved_status: Optional[str] = None,
+        rejected_status: Optional[str] = None,
+        deferred_status: Optional[str] = None,
     ):
         self.instance = instance
         self.workflow_name = workflow_name

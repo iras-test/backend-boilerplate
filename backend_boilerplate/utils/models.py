@@ -1,5 +1,5 @@
 import uuid
-from typing import Any
+from typing import Any, Dict, Tuple
 
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -53,7 +53,7 @@ class BaseModel(models.Model):
 
     def delete(
         self, using: Any = None, keep_parents: bool = False
-    ) -> tuple[int, dict[str, int]]:
+    ) -> Tuple[int, Dict[str, int]]:
         self.deleted = True
         update_fields = ["deleted"]
 
